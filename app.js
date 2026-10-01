@@ -4,8 +4,8 @@
 
 const GAME_ID='lucky-numbers';
 const GAME_NAME='ラッキーナンバー';
-const MAX_PLAYERS=4;
-const APP_VERSION='v0.1.0';
+const MAX_PLAYERS=8;
+const APP_VERSION='v0.2.0';
 const COMMON_PLAYER_NAME_KEY='boardgamePlayerName';
 const ROOM_IDS=['room1','room2','room3','room4'];
 const WORKER_ORIGIN=String(window.LUCKY_NUMBERS_CONFIG?.WORKER_ORIGIN||'').replace(/\/$/,'');
@@ -22,6 +22,7 @@ let state=null;
 let rooms=[];
 let commonNameSavedForSession=null;
 let lastTurnPlayerId=null;
+let announcedReachIds=new Set();
 let actionSeq=0;
 
 const $=s=>document.querySelector(s);
@@ -166,6 +167,17 @@ function applyState(s){
   else if(s.status==='playing'){showScreen('gameScreen');renderGame();}
   else if(s.status==='finished'){showScreen('resultScreen');renderResult();}
 
+  if(s.status==='playing'){
+    for(const rp of s.players){
+      if(countBoard(rp.board)===15 && !announcedReachIds.has(rp.id)){
+        announcedReachIds.add(rp.id);
+        showReachOverlay(rp.id===player.id?'あなた リーチ！':`${rp.name} リーチ！`);
+      }
+    }
+  } else if(s.status==='lobby'){
+    announcedReachIds=new Set();
+  }
+
   if(s.status==='playing' && lastTurnPlayerId!==s.currentPlayerId){
     lastTurnPlayerId=s.currentPlayerId;
     const p=s.players.find(x=>x.id===s.currentPlayerId);
@@ -173,8 +185,23 @@ function applyState(s){
   }
 }
 function showTurnOverlay(text){
-  const el=$('#turnOverlay');el.textContent=text;el.classList.remove('hidden');
-  clearTimeout(showTurnOverlay.t);showTurnOverlay.t=setTimeout(()=>el.classList.add('hidden'),1800);
+  const el=$('#turnOverlay');
+  el.classList.remove('reach-pop');
+  el.textContent=text;
+  el.classList.remove('hidden');
+  clearTimeout(showTurnOverlay.t);
+  showTurnOverlay.t=setTimeout(()=>el.classList.add('hidden'),1800);
+}
+function showReachOverlay(text){
+  const el=$('#turnOverlay');
+  el.classList.add('reach-pop');
+  el.textContent=text;
+  el.classList.remove('hidden');
+  clearTimeout(showTurnOverlay.t);
+  showTurnOverlay.t=setTimeout(()=>{
+    el.classList.add('hidden');
+    el.classList.remove('reach-pop');
+  },2200);
 }
 
 function renderLobby(){
@@ -217,14 +244,16 @@ function renderGame(){
     $('#discardSelectedBtn').classList.toggle('hidden',sel.source!=='draw');
   }
 
-  $('#myName').textContent=player.name;
-  $('#myCount').textContent=`${countBoard(player.board)} / 16`;
+  const myWaits=reachWaits(player.board);
+  $('#myName').textContent=player.name + (countBoard(player.board)===15 ? `　待ち: ${myWaits.length?myWaits.join('・'):'なし'}` : '');
   renderBoard($('#myBoard'),player,true);
 
   const opp=$('#opponents');opp.innerHTML='';
   state.players.filter(p=>p.id!==player.id).forEach(p=>{
     const wrap=document.createElement('div');wrap.className='mini-player'+(p.id===state.currentPlayerId?' active':'');
-    wrap.innerHTML=`<div class="mini-head"><strong>${escapeHtml(p.name)}${p.cpu?' [CPU]':''}</strong><span>${countBoard(p.board)}/16</span></div><div class="mini-board"></div>`;
+    const waits=reachWaits(p.board);
+    const reachText=countBoard(p.board)===15 ? `<span class="reach-wait">待ち: ${waits.length?waits.join('・'):'なし'}</span>` : '';
+    wrap.innerHTML=`<div class="mini-head"><strong>${escapeHtml(p.name)}${p.cpu?' [CPU]':''} ${reachText}</strong></div><div class="mini-board"></div>`;
     const mb=wrap.querySelector('.mini-board');
     p.board.flat().forEach(n=>{const c=document.createElement('div');c.className='mini-cell';c.textContent=n??'';mb.appendChild(c)});
     opp.appendChild(wrap);
@@ -263,6 +292,19 @@ function isValidPlacement(board,r,c,v){
   return true;
 }
 function countBoard(b){return b?.flat().filter(x=>x!=null).length||0;}
+function reachWaits(board){
+  if(countBoard(board)!==15) return [];
+  let er=-1,ec=-1;
+  for(let r=0;r<4;r++)for(let c=0;c<4;c++){
+    if(board[r][c]==null){er=r;ec=c;}
+  }
+  if(er<0)return [];
+  const waits=[];
+  for(let v=1;v<=20;v++){
+    if(isValidPlacement(board,er,ec,v)) waits.push(v);
+  }
+  return waits;
+}
 
 function renderLog(){
   $('#logBody').textContent=(state?.log||[]).slice().reverse().join('\n')||'ログはありません。';
@@ -282,7 +324,7 @@ function renderResult(){
 
 function leaveRoom(){
   if(ws&&ws.readyState===1) ws.send(JSON.stringify({type:'leave',actionId:newActionId('leave')}));
-  currentRoomId=null;state=null;lastTurnPlayerId=null;
+  currentRoomId=null;state=null;lastTurnPlayerId=null;announcedReachIds=new Set();
   localStorage.removeItem(ACTIVE_ROOM_KEY);localStorage.removeItem(ACTIVE_NAME_KEY);
   const oldWs=ws;
   ws=null;
