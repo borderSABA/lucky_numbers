@@ -1310,3 +1310,142 @@ html.mobile-ui .draft-players{
   border-right:0 !important;
   border-top:1px solid #2d553d !important;
 }
+
+
+/* v0.5.3 adaptive smartphone sizing */
+.reach-line{
+  display:block;
+  min-height:var(--opponent-reach-line,12px);
+  line-height:var(--opponent-reach-line,12px);
+  color:#ffe66d;
+  font-weight:1000;
+  font-size:10px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.mini-head{
+  display:block;
+}
+
+html.mobile-ui .draft-center{
+  display:grid !important;
+  grid-template-rows:auto minmax(0,1fr) auto !important;
+  align-content:stretch !important;
+}
+html.mobile-ui .draft-info{
+  min-height:18px;
+}
+html.mobile-ui .draft-pool{
+  width:100% !important;
+  max-height:none !important;
+  min-height:0 !important;
+  overflow:hidden !important;
+  display:grid !important;
+  grid-template-columns:repeat(var(--draft-cols,4),var(--draft-tile-size,44px)) !important;
+  grid-auto-rows:var(--draft-tile-size,44px) !important;
+  justify-content:center !important;
+  align-content:center !important;
+  gap:4px !important;
+}
+html.mobile-ui .draft-pool .draft-number-tile{
+  width:var(--draft-tile-size,44px) !important;
+  height:var(--draft-tile-size,44px) !important;
+  min-width:var(--draft-tile-size,44px) !important;
+  min-height:var(--draft-tile-size,44px) !important;
+  font-size:calc(var(--draft-tile-size,44px) * .4) !important;
+}
+html.mobile-ui .draft-board-wrap{
+  min-height:0 !important;
+  justify-content:end !important;
+}
+html.mobile-ui .draft-board-wrap .board{
+  --mobile-cell:var(--draft-board-cell,46px) !important;
+  grid-template-columns:repeat(4,var(--draft-board-cell,46px)) !important;
+  grid-template-rows:repeat(4,var(--draft-board-cell,46px)) !important;
+  gap:3px !important;
+  padding:5px !important;
+}
+html.mobile-ui .draft-board-wrap .cell{
+  width:var(--draft-board-cell,46px) !important;
+  height:var(--draft-board-cell,46px) !important;
+}
+html.mobile-ui .draft-board-wrap .cell .number-tile{
+  width:calc(var(--draft-board-cell,46px) * .68) !important;
+  height:calc(var(--draft-board-cell,46px) * .68) !important;
+  font-size:calc(var(--draft-board-cell,46px) * .3) !important;
+}
+
+html.mobile-ui .opponents .mini-head{
+  max-height:none !important;
+  min-height:22px !important;
+  display:grid !important;
+  grid-template-rows:auto var(--opponent-reach-line,11px) !important;
+  align-content:start !important;
+}
+html.mobile-ui .opponents .mini-head strong{
+  display:block;
+  line-height:10px;
+  min-height:10px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+html.mobile-ui .opponents .reach-line{
+  min-height:var(--opponent-reach-line,11px);
+  line-height:var(--opponent-reach-line,11px);
+  font-size:8px;
+}
+
+@media (max-width:420px){
+  html.mobile-ui .opponents .mini-head{
+    min-height:20px !important;
+  }
+  html.mobile-ui .opponents .mini-head strong{
+    font-size:7px;
+  }
+  html.mobile-ui .opponents .reach-line{
+    font-size:7px;
+  }
+}
+
+
+/* v0.5.4 PC: opponent boards keep a sensible maximum size */
+@media (min-width:641px){
+
+  .opponents,
+  .opponents.opponents-4plus,
+  .opponents.opponents-6plus{
+    display:grid !important;
+    grid-template-columns:repeat(3,minmax(130px,180px)) !important;
+    grid-auto-rows:minmax(0,170px) !important;
+    justify-content:start !important;
+    align-content:start !important;
+    gap:8px !important;
+    overflow:hidden !important;
+  }
+
+  .mini-player{
+    width:100% !important;
+    max-width:180px !important;
+    height:170px !important;
+    min-height:170px !important;
+    flex:none !important;
+  }
+
+  .mini-board{
+    flex:none !important;
+    width:100% !important;
+    height:132px !important;
+    grid-template-columns:repeat(4,1fr) !important;
+    grid-template-rows:repeat(4,1fr) !important;
+  }
+
+  .mini-cell{
+    width:auto !important;
+    height:auto !important;
+    min-height:0 !important;
+    aspect-ratio:auto !important;
+    font-size:17px !important;
+  }
+}

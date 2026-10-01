@@ -5,7 +5,7 @@
 const GAME_ID='lucky-numbers';
 const GAME_NAME='ラッキーナンバー';
 const MAX_PLAYERS=8;
-const APP_VERSION='v0.5.2';
+const APP_VERSION='v0.5.4';
 const COMMON_PLAYER_NAME_KEY='boardgamePlayerName';
 const ROOM_IDS=['room1','room2','room3','room4'];
 const WORKER_ORIGIN=String(window.LUCKY_NUMBERS_CONFIG?.WORKER_ORIGIN||'').replace(/\/$/,'');
@@ -38,6 +38,43 @@ function updateMobileUiClass(){
 updateMobileUiClass();
 window.addEventListener('resize', updateMobileUiClass);
 window.addEventListener('orientationchange', ()=>setTimeout(updateMobileUiClass,100));
+
+function updateResponsiveSizing(){
+  const root=document.documentElement;
+  const mobile=root.classList.contains('mobile-ui');
+  if(!mobile){
+    root.style.removeProperty('--draft-tile-size');
+    root.style.removeProperty('--draft-board-cell');
+    root.style.removeProperty('--opponent-reach-line');
+    return;
+  }
+
+  const vw=Math.max(320,window.innerWidth||320);
+  const vh=Math.max(480,window.innerHeight||480);
+
+  const draftCount=Math.max(1,state?.draftPool?.length||4);
+  const cols = draftCount >= 24 ? 6 : draftCount >= 16 ? 5 : 4;
+
+  const availableDraftWidth = Math.max(180, vw - 16);
+  const byWidth = Math.floor((availableDraftWidth - (cols-1)*4) / cols);
+
+  // Keep enough vertical room for info + pool + player's 4x4 board.
+  const poolRows = Math.ceil(draftCount / cols);
+  const availableTop = Math.max(250, vh*0.72 - 74);
+  const byHeightForPool = Math.floor((availableTop*0.46 - (poolRows-1)*4) / poolRows);
+
+  const draftTile = Math.max(28, Math.min(54, byWidth, byHeightForPool));
+
+  const boardAvailable = Math.max(150, Math.min(vw - 24, availableTop*0.50));
+  const draftCell = Math.max(34, Math.min(56, Math.floor((boardAvailable-22)/4)));
+
+  root.style.setProperty('--draft-cols', String(cols));
+  root.style.setProperty('--draft-tile-size', `${draftTile}px`);
+  root.style.setProperty('--draft-board-cell', `${draftCell}px`);
+  root.style.setProperty('--opponent-reach-line', '11px');
+}
+window.addEventListener('resize', updateResponsiveSizing);
+window.addEventListener('orientationchange', ()=>setTimeout(updateResponsiveSizing,120));
 
 function commonSavedName(){
   return String(localStorage.getItem(COMMON_PLAYER_NAME_KEY)||'').trim().slice(0,32);
@@ -178,6 +215,7 @@ function applyState(s){
   else if(s.status==='draft'){showScreen('draftScreen');renderDraft();}
   else if(s.status==='playing'){showScreen('gameScreen');renderGame();}
   else if(s.status==='finished'){showScreen('resultScreen');renderResult();}
+  requestAnimationFrame(updateResponsiveSizing);
 
   if(s.status==='playing'){
     for(const rp of s.players){
@@ -237,6 +275,7 @@ function renderLobby(){
 
 
 function renderDraft(){
+  updateResponsiveSizing();
   const player=me();
   const current=state.players.find(x=>x.id===state.draftCurrentPlayerId);
   const round=Number(state.draftRound||0)+1;
@@ -319,8 +358,8 @@ function renderGame(){
   others.forEach(p=>{
     const wrap=document.createElement('div');wrap.className='mini-player'+(p.id===state.currentPlayerId?' active':'');
     const waits=reachWaits(p.board);
-    const reachText=countBoard(p.board)===15 ? `<span class="reach-wait">${waits.length?waits.join('・'):'—'}</span>` : '';
-    wrap.innerHTML=`<div class="mini-head"><strong>${escapeHtml(p.name)}${p.cpu?' [CPU]':''} ${reachText}</strong></div><div class="mini-board"></div>`;
+    const reachText=countBoard(p.board)===15 ? (waits.length?waits.join('・'):'—') : '&nbsp;';
+    wrap.innerHTML=`<div class="mini-head"><strong>${escapeHtml(p.name)}${p.cpu?' [CPU]':''}</strong><span class="reach-line">${reachText}</span></div><div class="mini-board"></div>`;
     const mb=wrap.querySelector('.mini-board');
     p.board.flat().forEach(n=>{const c=document.createElement('div');c.className='mini-cell';c.textContent=n??'';mb.appendChild(c)});
     opp.appendChild(wrap);
