@@ -5,7 +5,7 @@
 const GAME_ID='lucky-numbers';
 const GAME_NAME='ラッキーナンバー';
 const MAX_PLAYERS=8;
-const APP_VERSION='v0.5.3';
+const APP_VERSION='v0.5.6';
 const COMMON_PLAYER_NAME_KEY='boardgamePlayerName';
 const ROOM_IDS=['room1','room2','room3','room4'];
 const WORKER_ORIGIN=String(window.LUCKY_NUMBERS_CONFIG?.WORKER_ORIGIN||'').replace(/\/$/,'');
@@ -353,13 +353,14 @@ function renderGame(){
   renderBoard($('#myBoard'),player,true);
 
   const opp=$('#opponents');opp.innerHTML='';
-  const others=state.players.filter(p=>p.id!==player.id);
-  opp.dataset.count=String(others.length);
-  others.forEach(p=>{
-    const wrap=document.createElement('div');wrap.className='mini-player'+(p.id===state.currentPlayerId?' active':'');
+  const boardPlayers=[...state.players];
+  opp.dataset.count=String(boardPlayers.length);
+  boardPlayers.forEach(p=>{
+    const wrap=document.createElement('div');
+    wrap.className='mini-player'+(p.id===state.currentPlayerId?' active':'')+(p.id===player.id?' self-mini':'');
     const waits=reachWaits(p.board);
     const reachText=countBoard(p.board)===15 ? (waits.length?waits.join('・'):'—') : '&nbsp;';
-    wrap.innerHTML=`<div class="mini-head"><strong>${escapeHtml(p.name)}${p.cpu?' [CPU]':''}</strong><span class="reach-line">${reachText}</span></div><div class="mini-board"></div>`;
+    wrap.innerHTML=`<div class="mini-head"><strong>${escapeHtml(p.name)}${p.cpu?' [CPU]':''}${p.id===player.id?' [自分]':''}</strong><span class="reach-line">${reachText}</span></div><div class="mini-board"></div>`;
     const mb=wrap.querySelector('.mini-board');
     p.board.flat().forEach(n=>{const c=document.createElement('div');c.className='mini-cell';c.textContent=n??'';mb.appendChild(c)});
     opp.appendChild(wrap);
