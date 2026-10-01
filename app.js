@@ -5,7 +5,7 @@
 const GAME_ID='lucky-numbers';
 const GAME_NAME='ラッキーナンバー';
 const MAX_PLAYERS=8;
-const APP_VERSION='v0.4.2';
+const APP_VERSION='v0.5.0';
 const COMMON_PLAYER_NAME_KEY='boardgamePlayerName';
 const ROOM_IDS=['room1','room2','room3','room4'];
 const WORKER_ORIGIN=String(window.LUCKY_NUMBERS_CONFIG?.WORKER_ORIGIN||'').replace(/\/$/,'');
