@@ -1556,3 +1556,12 @@ html.mobile-ui .opponents .reach-line{
     height:auto !important;
   }
 }
+
+#reselectDiscardBtn{white-space:nowrap}
+
+
+/* v0.5.9 */
+.number-tile.reselectable{
+  cursor:pointer;
+  box-shadow:0 0 0 3px #fff inset,0 0 0 2px #ffe66d;
+}

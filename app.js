@@ -5,7 +5,7 @@
 const GAME_ID='lucky-numbers';
 const GAME_NAME='ラッキーナンバー';
 const MAX_PLAYERS=8;
-const APP_VERSION='v0.5.7';
+const APP_VERSION='v0.5.9';
 const COMMON_PLAYER_NAME_KEY='boardgamePlayerName';
 const ROOM_IDS=['room1','room2','room3','room4'];
 const WORKER_ORIGIN=String(window.LUCKY_NUMBERS_CONFIG?.WORKER_ORIGIN||'').replace(/\/$/,'');
@@ -292,17 +292,32 @@ function renderDraft(){
   }
 
   const pool=$('#draftPool');pool.innerHTML='';
-  const sortedDraft=(state.draftPool||[])
-    .map((value,index)=>({value,index}))
-    .sort((a,b)=>a.value-b.value || a.index-b.index);
-  sortedDraft.forEach(item=>{
-    const b=document.createElement('button');
-    b.className='number-tile draft-number-tile';
-    b.textContent=item.value;
-    b.disabled=state.draftCurrentPlayerId!==player.id || !!state.draftSelected;
-    b.onclick=()=>send('draft-pick',{index:item.index});
-    pool.appendChild(b);
-  });
+  const selectedMine=state.draftSelected?.playerId===player.id;
+  const draftItems=(state.draftPool||[]).map((value,index)=>({value,index,chosen:false}));
+
+  if(selectedMine){
+    draftItems.push({
+      value:state.draftSelected.value,
+      index:state.draftSelected.poolIndex,
+      chosen:true
+    });
+  }
+
+  draftItems
+    .sort((a,b)=>a.value-b.value || Number(b.chosen)-Number(a.chosen) || a.index-b.index)
+    .forEach(item=>{
+      const b=document.createElement('button');
+      b.className='number-tile draft-number-tile';
+      b.textContent=item.value;
+      const myTurn=state.draftCurrentPlayerId===player.id;
+      b.disabled=!myTurn || (selectedMine && !item.chosen);
+      if(item.chosen)b.classList.add('selected','reselectable');
+      b.onclick=()=>{
+        if(item.chosen) send('draft-cancel-selection');
+        else send('draft-pick',{index:item.index});
+      };
+      pool.appendChild(b);
+    });
 
   renderDraftBoard($('#draftBoard'),player);
 }
@@ -345,7 +360,12 @@ function renderGame(){
   $('#selectedTileBox').classList.toggle('hidden',!sel||sel.playerId!==player.id);
   if(sel&&sel.playerId===player.id){
     $('#selectedTile').textContent=sel.value;
+    $('#selectedTile').disabled=sel.source==='draw';
+    $('#selectedTile').classList.toggle('reselectable',sel.source==='discard');
     $('#discardSelectedBtn').classList.toggle('hidden',sel.source!=='draw');
+  } else {
+    $('#selectedTile').disabled=true;
+    $('#selectedTile').classList.remove('reselectable');
   }
 
   const myWaits=reachWaits(player.board);
@@ -477,6 +497,10 @@ $('#addCpuBtn').onclick=()=>send('add-cpu');
 $('#removeCpuBtn').onclick=()=>send('remove-cpu');
 $('#startBtn').onclick=()=>send('start');
 $('#drawPileBtn').onclick=()=>send('draw');
+$('#selectedTile').onclick=()=>{
+  const sel=selected();
+  if(sel?.source==='discard')send('cancel-discard-selection');
+};
 $('#discardSelectedBtn').onclick=()=>send('discard-selected');
 $('#logBtn').onclick=()=>{renderLog();$('#logDialog').showModal();};
 $('#viewBoardsBtn').onclick=()=>{renderFinalBoards();$('#boardsDialog').showModal();};
