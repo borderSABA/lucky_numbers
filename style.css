@@ -575,3 +575,45 @@ dialog::backdrop{background:rgba(0,0,0,.65)}
     font-size:9px;
   }
 }
+
+
+/* v0.4.2 */
+.draft-pool{
+  grid-template-columns:repeat(10,minmax(32px,1fr));
+  gap:6px;
+  justify-items:center;
+}
+.draft-pool .draft-number-tile{
+  width:32px !important;
+  height:32px !important;
+  min-width:32px;
+  min-height:32px;
+  aspect-ratio:1;
+  font-size:14px !important;
+  border-width:2px;
+}
+@media (max-width:900px){
+  .draft-pool{
+    grid-template-columns:repeat(8,minmax(30px,1fr));
+  }
+  .draft-pool .draft-number-tile{
+    width:30px !important;
+    height:30px !important;
+    min-width:30px;
+    min-height:30px;
+    font-size:13px !important;
+  }
+}
+@media (max-width:640px){
+  .draft-pool{
+    grid-template-columns:repeat(6,minmax(28px,1fr));
+    gap:4px;
+  }
+  .draft-pool .draft-number-tile{
+    width:28px !important;
+    height:28px !important;
+    min-width:28px;
+    min-height:28px;
+    font-size:12px !important;
+  }
+}

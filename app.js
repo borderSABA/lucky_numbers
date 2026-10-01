@@ -5,7 +5,7 @@
 const GAME_ID='lucky-numbers';
 const GAME_NAME='ラッキーナンバー';
 const MAX_PLAYERS=8;
-const APP_VERSION='v0.4.1';
+const APP_VERSION='v0.4.2';
 const COMMON_PLAYER_NAME_KEY='boardgamePlayerName';
 const ROOM_IDS=['room1','room2','room3','room4'];
 const WORKER_ORIGIN=String(window.LUCKY_NUMBERS_CONFIG?.WORKER_ORIGIN||'').replace(/\/$/,'');
@@ -243,12 +243,15 @@ function renderDraft(){
   }
 
   const pool=$('#draftPool');pool.innerHTML='';
-  (state.draftPool||[]).forEach((v,idx)=>{
+  const sortedDraft=(state.draftPool||[])
+    .map((value,index)=>({value,index}))
+    .sort((a,b)=>a.value-b.value || a.index-b.index);
+  sortedDraft.forEach(item=>{
     const b=document.createElement('button');
-    b.className='number-tile';
-    b.textContent=v;
+    b.className='number-tile draft-number-tile';
+    b.textContent=item.value;
     b.disabled=state.draftCurrentPlayerId!==player.id || !!state.draftSelected;
-    b.onclick=()=>send('draft-pick',{index:idx});
+    b.onclick=()=>send('draft-pick',{index:item.index});
     pool.appendChild(b);
   });
 
