@@ -5,7 +5,7 @@
 const GAME_ID='lucky-numbers';
 const GAME_NAME='ラッキーナンバー';
 const MAX_PLAYERS=8;
-const APP_VERSION='v0.4.0';
+const APP_VERSION='v0.4.1';
 const COMMON_PLAYER_NAME_KEY='boardgamePlayerName';
 const ROOM_IDS=['room1','room2','room3','room4'];
 const WORKER_ORIGIN=String(window.LUCKY_NUMBERS_CONFIG?.WORKER_ORIGIN||'').replace(/\/$/,'');
@@ -231,7 +231,7 @@ function renderDraft(){
   const current=state.players.find(x=>x.id===state.draftCurrentPlayerId);
   const round=Number(state.draftRound||0)+1;
   $('#draftTurnText').textContent=current?`${current.name} の選択`:'ドラフト';
-  $('#draftInfo').textContent=`${round}/4枚目　${current?current.name+' が選択中':''}`;
+  $('#draftInfo').textContent=`初期配置ドラフト ${round}/4枚目　${current?current.name+' が選択中':''}`;
   $('#draftMyName').textContent=player.name;
 
   const side=$('#draftPlayers');side.innerHTML='';
@@ -302,8 +302,7 @@ function renderGame(){
 
   const opp=$('#opponents');opp.innerHTML='';
   const others=state.players.filter(p=>p.id!==player.id);
-  opp.classList.toggle('opponents-4plus',others.length>=4);
-  opp.classList.toggle('opponents-6plus',others.length>=6);
+  opp.dataset.count=String(others.length);
   others.forEach(p=>{
     const wrap=document.createElement('div');wrap.className='mini-player'+(p.id===state.currentPlayerId?' active':'');
     const waits=reachWaits(p.board);

@@ -386,3 +386,192 @@ dialog::backdrop{background:rgba(0,0,0,.65)}
     padding:6px;
   }
 }
+
+
+/* v0.4.1 — fixed no-scroll layouts */
+
+/* Main game: opponents are always fitted into max 3 columns x 3 rows. */
+.game-layout{
+  grid-template-columns:minmax(330px,40vw) minmax(0,1fr);
+  overflow:hidden;
+}
+.opponents,
+.opponents.opponents-4plus,
+.opponents.opponents-6plus{
+  height:100%;
+  min-height:0;
+  overflow:hidden !important;
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  grid-auto-rows:minmax(0,1fr);
+  gap:6px;
+  align-content:stretch;
+  padding:6px;
+}
+.mini-player{
+  min-width:0 !important;
+  min-height:0;
+  height:100%;
+  margin:0 !important;
+  padding:5px;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+.mini-head{
+  flex:0 0 auto;
+  font-size:clamp(9px,1vw,13px);
+  line-height:1.2;
+  margin-bottom:4px;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+.mini-board{
+  flex:1 1 auto;
+  min-height:0;
+  display:grid !important;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  grid-template-rows:repeat(4,minmax(0,1fr));
+  gap:2px;
+}
+.mini-cell{
+  min-width:0;
+  min-height:0 !important;
+  width:auto;
+  height:auto;
+  aspect-ratio:auto;
+  font-size:clamp(10px,1.15vw,18px) !important;
+  border-radius:4px;
+}
+
+/* Draft starts from a completely empty board and uses this screen only
+   until all four initial numbers have been selected and placed. */
+.draft-layout{
+  overflow:hidden;
+}
+.draft-center{
+  overflow:hidden !important;
+}
+.draft-board-wrap{
+  flex:0 0 auto;
+}
+
+/* Final board view: full-screen dialog, no scrolling, max 3x3. */
+.boards-dialog{
+  width:96vw;
+  height:92dvh;
+  max-width:none;
+  max-height:none;
+  overflow:hidden !important;
+  padding:14px;
+}
+.boards-dialog .dialog-head{
+  height:42px;
+}
+.boards-dialog .dialog-body,
+.boards-dialog-body,
+.boards-dialog-body.no-scroll{
+  height:calc(92dvh - 74px);
+  max-height:none;
+  overflow:hidden !important;
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  grid-template-rows:repeat(3,minmax(0,1fr)) !important;
+  gap:8px;
+  margin-top:8px;
+}
+.boards-dialog-body .result-board-card{
+  min-width:0;
+  min-height:0;
+  height:100%;
+  padding:7px;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+.boards-dialog-body .result-board-card h3{
+  flex:0 0 auto;
+  margin:0 0 5px;
+  font-size:clamp(10px,1.2vw,15px);
+  line-height:1.1;
+}
+.boards-dialog-body .result-board-grid{
+  flex:1 1 auto;
+  min-height:0;
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  grid-template-rows:repeat(4,minmax(0,1fr));
+  gap:3px;
+}
+.boards-dialog-body .result-board-cell{
+  min-width:0;
+  min-height:0;
+  width:auto !important;
+  height:auto !important;
+  aspect-ratio:auto !important;
+  font-size:clamp(12px,1.5vw,20px);
+}
+
+/* At narrower widths, keep the same 3x3 rule instead of changing to scroll. */
+@media (max-width:900px){
+  .game-layout{
+    grid-template-columns:minmax(270px,46vw) minmax(0,1fr) !important;
+  }
+  .opponents{
+    height:100% !important;
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    overflow:hidden !important;
+    border-right:1px solid #2d553d !important;
+    border-bottom:0 !important;
+  }
+}
+@media (max-width:640px){
+  .game-layout{
+    display:grid !important;
+    grid-template-columns:48vw minmax(0,1fr) !important;
+    height:calc(100dvh - 56px) !important;
+    overflow:hidden !important;
+  }
+  .opponents{
+    height:100% !important;
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    grid-auto-rows:minmax(0,1fr);
+    overflow:hidden !important;
+    padding:3px;
+    gap:3px;
+  }
+  .mini-player{
+    padding:3px;
+  }
+  .mini-head{
+    font-size:8px;
+    margin-bottom:2px;
+  }
+  .mini-cell{
+    font-size:8px !important;
+  }
+  .boards-dialog{
+    width:98vw;
+    height:94dvh;
+    padding:8px;
+  }
+  .boards-dialog .dialog-body,
+  .boards-dialog-body,
+  .boards-dialog-body.no-scroll{
+    height:calc(94dvh - 60px);
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    grid-template-rows:repeat(3,minmax(0,1fr)) !important;
+    gap:4px;
+  }
+  .boards-dialog-body .result-board-card{
+    padding:4px;
+  }
+  .boards-dialog-body .result-board-card h3{
+    font-size:8px;
+    margin-bottom:2px;
+  }
+  .boards-dialog-body .result-board-cell{
+    font-size:9px;
+  }
+}
