@@ -5,7 +5,7 @@
 const GAME_ID='lucky-numbers';
 const GAME_NAME='ラッキーナンバー';
 const MAX_PLAYERS=8;
-const APP_VERSION='v0.3.0';
+const APP_VERSION='v0.4.0';
 const COMMON_PLAYER_NAME_KEY='boardgamePlayerName';
 const ROOM_IDS=['room1','room2','room3','room4'];
 const WORKER_ORIGIN=String(window.LUCKY_NUMBERS_CONFIG?.WORKER_ORIGIN||'').replace(/\/$/,'');
@@ -165,6 +165,7 @@ function applyState(s){
   }
 
   if(s.status==='lobby'){showScreen('lobbyScreen');renderLobby();}
+  else if(s.status==='draft'){showScreen('draftScreen');renderDraft();}
   else if(s.status==='playing'){showScreen('gameScreen');renderGame();}
   else if(s.status==='finished'){showScreen('resultScreen');renderResult();}
 
@@ -174,7 +175,7 @@ function applyState(s){
       const prevCount=previousBoardCounts.has(rp.id)?previousBoardCounts.get(rp.id):null;
       if(nowCount===15 && prevCount!==15 && !announcedReachIds.has(rp.id)){
         announcedReachIds.add(rp.id);
-        showReachOverlay(rp.id===player.id?'あなた リーチ！':`${rp.name} リーチ！`);
+        showReachOverlay(`${rp.name} リーチ！`);
       }
       previousBoardCounts.set(rp.id,nowCount);
     }
@@ -218,6 +219,56 @@ function renderLobby(){
   $('#addCpuBtn').disabled=state.players.length>=MAX_PLAYERS;
   $('#removeCpuBtn').disabled=!state.players.some(p=>p.cpu);
   $('#startBtn').disabled=state.players.length<2||state.players.length>8;
+  const mode=state.initialMode||'random';
+  const radio=document.querySelector(`input[name="initialMode"][value="${mode}"]`);
+  if(radio) radio.checked=true;
+}
+
+
+
+function renderDraft(){
+  const player=me();
+  const current=state.players.find(x=>x.id===state.draftCurrentPlayerId);
+  const round=Number(state.draftRound||0)+1;
+  $('#draftTurnText').textContent=current?`${current.name} の選択`:'ドラフト';
+  $('#draftInfo').textContent=`${round}/4枚目　${current?current.name+' が選択中':''}`;
+  $('#draftMyName').textContent=player.name;
+
+  const side=$('#draftPlayers');side.innerHTML='';
+  for(const p of state.players){
+    const el=document.createElement('div');
+    el.className='mini-player'+(p.id===state.draftCurrentPlayerId?' active':'');
+    el.innerHTML=`<div class="mini-head"><strong>${escapeHtml(p.name)}${p.cpu?' [CPU]':''}</strong><span>${p.draftPicks||0}/4</span></div>`;
+    side.appendChild(el);
+  }
+
+  const pool=$('#draftPool');pool.innerHTML='';
+  (state.draftPool||[]).forEach((v,idx)=>{
+    const b=document.createElement('button');
+    b.className='number-tile';
+    b.textContent=v;
+    b.disabled=state.draftCurrentPlayerId!==player.id || !!state.draftSelected;
+    b.onclick=()=>send('draft-pick',{index:idx});
+    pool.appendChild(b);
+  });
+
+  renderDraftBoard($('#draftBoard'),player);
+}
+
+function renderDraftBoard(root,player){
+  root.innerHTML='';
+  const canPlace=state.draftCurrentPlayerId===player.id && state.draftSelected?.playerId===player.id;
+  for(let r=0;r<4;r++)for(let c=0;c<4;c++){
+    const cell=document.createElement('button');
+    cell.className='cell'+(r===c?' diag':'');
+    const n=player.board[r][c];
+    if(n!=null) cell.innerHTML=`<span class="number-tile">${n}</span>`;
+    const valid=canPlace && n==null && isValidPlacement(player.board,r,c,state.draftSelected.value);
+    if(valid) cell.classList.add('valid');
+    cell.disabled=!valid;
+    if(valid) cell.onclick=()=>send('draft-place',{row:r,col:c});
+    root.appendChild(cell);
+  }
 }
 
 function renderGame(){
@@ -250,7 +301,10 @@ function renderGame(){
   renderBoard($('#myBoard'),player,true);
 
   const opp=$('#opponents');opp.innerHTML='';
-  state.players.filter(p=>p.id!==player.id).forEach(p=>{
+  const others=state.players.filter(p=>p.id!==player.id);
+  opp.classList.toggle('opponents-4plus',others.length>=4);
+  opp.classList.toggle('opponents-6plus',others.length>=6);
+  others.forEach(p=>{
     const wrap=document.createElement('div');wrap.className='mini-player'+(p.id===state.currentPlayerId?' active':'');
     const waits=reachWaits(p.board);
     const reachText=countBoard(p.board)===15 ? `<span class="reach-wait">${waits.length?waits.join('・'):'—'}</span>` : '';
@@ -326,6 +380,7 @@ function renderResult(){
 function renderFinalBoards(){
   const root=$('#boardsDialogBody');
   root.innerHTML='';
+  root.classList.add('no-scroll');
   const winners=state?.winnerIds||[];
   for(const p of state?.players||[]){
     const card=document.createElement('div');
@@ -362,6 +417,10 @@ $$('[data-close-dialog]').forEach(b=>b.onclick=()=>$('#'+b.dataset.closeDialog).
 $('#leaveLobbyBtn').onclick=leaveRoom;
 $('#leaveGameBtn').onclick=leaveRoom;
 $('#leaveResultBtn').onclick=leaveRoom;
+document.querySelectorAll('input[name="initialMode"]').forEach(r=>{
+  r.addEventListener('change',()=>{ if(r.checked) send('set-initial-mode',{mode:r.value}); });
+});
+$('#leaveDraftBtn').onclick=leaveRoom;
 $('#addCpuBtn').onclick=()=>send('add-cpu');
 $('#removeCpuBtn').onclick=()=>send('remove-cpu');
 $('#startBtn').onclick=()=>send('start');

@@ -13,7 +13,7 @@
       <header class="titlebar">
         <div></div>
         <h1>LUCKY NUMBERS</h1>
-        <span class="version">v0.3.0</span>
+        <span class="version">v0.4.0</span>
       </header>
 
       <div class="title-body">
@@ -42,7 +42,7 @@
       <header class="titlebar">
         <button id="leaveLobbyBtn" class="ghost small">退出</button>
         <h1>LUCKY NUMBERS</h1>
-        <span class="version">v0.3.0</span>
+        <span class="version">v0.4.0</span>
       </header>
       <div class="panel lobby-panel">
         <div class="section-head">
@@ -57,6 +57,11 @@
 
           <div class="lobby-right">
             <div id="hostControls" class="host-controls hidden">
+              <div class="initial-mode-box">
+                <div class="initial-mode-title">初期数字</div>
+                <label><input type="radio" name="initialMode" value="random" checked> ランダム</label>
+                <label><input type="radio" name="initialMode" value="draft"> ドラフト</label>
+              </div>
               <div class="cpu-row">
                 <button id="addCpuBtn">CPUを追加</button>
                 <button id="removeCpuBtn" class="ghost">CPUを削除</button>
@@ -67,6 +72,26 @@
         </div>
 
         <p class="note">2～8人で開始できます。CPUを含めて8人までです。</p>
+      </div>
+    </section>
+
+
+    <section id="draftScreen" class="screen game-screen">
+      <header class="game-top">
+        <button id="leaveDraftBtn" class="ghost small">退出</button>
+        <div id="draftTurnText" class="turn-text">ドラフト</div>
+        <div></div>
+      </header>
+      <div class="draft-layout">
+        <div id="draftPlayers" class="draft-players"></div>
+        <div class="draft-center">
+          <div id="draftInfo" class="draft-info"></div>
+          <div id="draftPool" class="draft-pool"></div>
+          <div class="draft-board-wrap">
+            <div id="draftMyName" class="player-board-title"></div>
+            <div id="draftBoard" class="board"></div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -113,7 +138,7 @@
       <header class="titlebar">
         <div></div>
         <h1>RESULT</h1>
-        <span class="version">v0.3.0</span>
+        <span class="version">v0.4.0</span>
       </header>
       <div class="panel result-panel">
         <h2 id="resultTitle">勝者</h2>
