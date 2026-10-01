@@ -1522,3 +1522,37 @@ html.mobile-ui .opponents .reach-line{
     border-radius:4px !important;
   }
 }
+
+
+/* v0.5.7 PC: board card size is fixed to the v0.5.3 eight-player geometry */
+@media (min-width:641px){
+
+  .opponents,
+  .opponents.opponents-4plus,
+  .opponents.opponents-6plus{
+    display:grid !important;
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    grid-template-rows:repeat(3,minmax(0,1fr)) !important;
+    grid-auto-rows:unset !important;
+    align-content:stretch !important;
+    justify-content:stretch !important;
+    overflow:hidden !important;
+  }
+
+  .mini-player{
+    width:auto !important;
+    height:auto !important;
+    min-width:0 !important;
+    min-height:0 !important;
+    max-width:none !important;
+    max-height:none !important;
+    align-self:stretch !important;
+    justify-self:stretch !important;
+  }
+
+  .mini-board{
+    flex:1 1 auto !important;
+    min-height:0 !important;
+    height:auto !important;
+  }
+}
