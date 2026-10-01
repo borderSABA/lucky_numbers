@@ -5,7 +5,7 @@
 const GAME_ID='lucky-numbers';
 const GAME_NAME='ラッキーナンバー';
 const MAX_PLAYERS=8;
-const APP_VERSION='v0.5.1';
+const APP_VERSION='v0.5.2';
 const COMMON_PLAYER_NAME_KEY='boardgamePlayerName';
 const ROOM_IDS=['room1','room2','room3','room4'];
 const WORKER_ORIGIN=String(window.LUCKY_NUMBERS_CONFIG?.WORKER_ORIGIN||'').replace(/\/$/,'');
@@ -28,6 +28,16 @@ let actionSeq=0;
 
 const $=s=>document.querySelector(s);
 const $$=s=>[...document.querySelectorAll(s)];
+
+function updateMobileUiClass(){
+  const coarse = window.matchMedia?.('(pointer: coarse)').matches;
+  const portraitNarrow = window.innerWidth <= 900 && window.innerHeight >= window.innerWidth;
+  const narrow = window.innerWidth <= 700;
+  document.documentElement.classList.toggle('mobile-ui', !!(coarse || portraitNarrow || narrow));
+}
+updateMobileUiClass();
+window.addEventListener('resize', updateMobileUiClass);
+window.addEventListener('orientationchange', ()=>setTimeout(updateMobileUiClass,100));
 
 function commonSavedName(){
   return String(localStorage.getItem(COMMON_PLAYER_NAME_KEY)||'').trim().slice(0,32);
