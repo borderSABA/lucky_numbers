@@ -5,7 +5,7 @@
 const GAME_ID='lucky-numbers';
 const GAME_NAME='ラッキーナンバー';
 const MAX_PLAYERS=8;
-const APP_VERSION='v0.2.1';
+const APP_VERSION='v0.3.0';
 const COMMON_PLAYER_NAME_KEY='boardgamePlayerName';
 const ROOM_IDS=['room1','room2','room3','room4'];
 const WORKER_ORIGIN=String(window.LUCKY_NUMBERS_CONFIG?.WORKER_ORIGIN||'').replace(/\/$/,'');
@@ -23,6 +23,7 @@ let rooms=[];
 let commonNameSavedForSession=null;
 let lastTurnPlayerId=null;
 let announcedReachIds=new Set();
+let previousBoardCounts=new Map();
 let actionSeq=0;
 
 const $=s=>document.querySelector(s);
@@ -169,13 +170,17 @@ function applyState(s){
 
   if(s.status==='playing'){
     for(const rp of s.players){
-      if(countBoard(rp.board)===15 && !announcedReachIds.has(rp.id)){
+      const nowCount=countBoard(rp.board);
+      const prevCount=previousBoardCounts.has(rp.id)?previousBoardCounts.get(rp.id):null;
+      if(nowCount===15 && prevCount!==15 && !announcedReachIds.has(rp.id)){
         announcedReachIds.add(rp.id);
         showReachOverlay(rp.id===player.id?'あなた リーチ！':`${rp.name} リーチ！`);
       }
+      previousBoardCounts.set(rp.id,nowCount);
     }
   } else if(s.status==='lobby'){
     announcedReachIds=new Set();
+    previousBoardCounts=new Map();
   }
 
   if(s.status==='playing' && lastTurnPlayerId!==s.currentPlayerId){
@@ -193,15 +198,11 @@ function showTurnOverlay(text){
   showTurnOverlay.t=setTimeout(()=>el.classList.add('hidden'),1800);
 }
 function showReachOverlay(text){
-  const el=$('#turnOverlay');
-  el.classList.add('reach-pop');
+  const el=$('#reachOverlay');
   el.textContent=text;
   el.classList.remove('hidden');
-  clearTimeout(showTurnOverlay.t);
-  showTurnOverlay.t=setTimeout(()=>{
-    el.classList.add('hidden');
-    el.classList.remove('reach-pop');
-  },2200);
+  clearTimeout(showReachOverlay.t);
+  showReachOverlay.t=setTimeout(()=>el.classList.add('hidden'),2400);
 }
 
 function renderLobby(){
@@ -216,7 +217,7 @@ function renderLobby(){
   $('#hostControls').classList.toggle('hidden',!isHost());
   $('#addCpuBtn').disabled=state.players.length>=MAX_PLAYERS;
   $('#removeCpuBtn').disabled=!state.players.some(p=>p.cpu);
-  $('#startBtn').disabled=state.players.length<2||state.players.length>4;
+  $('#startBtn').disabled=state.players.length<2||state.players.length>8;
 }
 
 function renderGame(){
@@ -322,9 +323,30 @@ function renderResult(){
   });
 }
 
+function renderFinalBoards(){
+  const root=$('#boardsDialogBody');
+  root.innerHTML='';
+  const winners=state?.winnerIds||[];
+  for(const p of state?.players||[]){
+    const card=document.createElement('div');
+    card.className='result-board-card';
+    const waits=reachWaits(p.board);
+    const right=countBoard(p.board)===15 && waits.length ? waits.join('・') : '';
+    card.innerHTML=`<h3><span>${escapeHtml(p.name)}${p.cpu?' [CPU]':''}${winners.includes(p.id)?' 👑':''}</span><span class="reach-wait">${right}</span></h3><div class="result-board-grid"></div>`;
+    const grid=card.querySelector('.result-board-grid');
+    p.board.flat().forEach(n=>{
+      const c=document.createElement('div');
+      c.className='result-board-cell';
+      c.textContent=n??'';
+      grid.appendChild(c);
+    });
+    root.appendChild(card);
+  }
+}
+
 function leaveRoom(){
   if(ws&&ws.readyState===1) ws.send(JSON.stringify({type:'leave',actionId:newActionId('leave')}));
-  currentRoomId=null;state=null;lastTurnPlayerId=null;announcedReachIds=new Set();
+  currentRoomId=null;state=null;lastTurnPlayerId=null;announcedReachIds=new Set();previousBoardCounts=new Map();
   localStorage.removeItem(ACTIVE_ROOM_KEY);localStorage.removeItem(ACTIVE_NAME_KEY);
   const oldWs=ws;
   ws=null;
@@ -346,6 +368,7 @@ $('#startBtn').onclick=()=>send('start');
 $('#drawPileBtn').onclick=()=>send('draw');
 $('#discardSelectedBtn').onclick=()=>send('discard-selected');
 $('#logBtn').onclick=()=>{renderLog();$('#logDialog').showModal();};
+$('#viewBoardsBtn').onclick=()=>{renderFinalBoards();$('#boardsDialog').showModal();};
 $('#backLobbyBtn').onclick=()=>send('back-lobby');
 
 $('#serverWarning').classList.toggle('hidden',serverConfigured());

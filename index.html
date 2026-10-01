@@ -13,7 +13,7 @@
       <header class="titlebar">
         <div></div>
         <h1>LUCKY NUMBERS</h1>
-        <span class="version">v0.2.1</span>
+        <span class="version">v0.3.0</span>
       </header>
 
       <div class="title-body">
@@ -42,22 +42,30 @@
       <header class="titlebar">
         <button id="leaveLobbyBtn" class="ghost small">退出</button>
         <h1>LUCKY NUMBERS</h1>
-        <span class="version">v0.2.1</span>
+        <span class="version">v0.3.0</span>
       </header>
       <div class="panel lobby-panel">
         <div class="section-head">
           <h2 id="lobbyRoomTitle">ROOM</h2>
           <span id="lobbyStatus" class="badge">待機中</span>
         </div>
-        <div id="seatList" class="seat-list"></div>
 
-        <div id="hostControls" class="host-controls hidden">
-          <div class="cpu-row">
-            <button id="addCpuBtn">CPUを追加</button>
-            <button id="removeCpuBtn" class="ghost">CPUを削除</button>
+        <div class="lobby-columns">
+          <div class="lobby-left">
+            <div id="seatList" class="seat-list"></div>
           </div>
-          <button id="startBtn" class="primary wide">ゲーム開始</button>
+
+          <div class="lobby-right">
+            <div id="hostControls" class="host-controls hidden">
+              <div class="cpu-row">
+                <button id="addCpuBtn">CPUを追加</button>
+                <button id="removeCpuBtn" class="ghost">CPUを削除</button>
+              </div>
+              <button id="startBtn" class="primary wide">ゲーム開始</button>
+            </div>
+          </div>
         </div>
+
         <p class="note">2～8人で開始できます。CPUを含めて8人までです。</p>
       </div>
     </section>
@@ -105,12 +113,13 @@
       <header class="titlebar">
         <div></div>
         <h1>RESULT</h1>
-        <span class="version">v0.2.1</span>
+        <span class="version">v0.3.0</span>
       </header>
       <div class="panel result-panel">
         <h2 id="resultTitle">勝者</h2>
         <div id="resultList" class="result-list"></div>
-        <div class="result-actions">
+        <div class="result-actions result-actions-3">
+          <button id="viewBoardsBtn" class="ghost">盤面を見る</button>
           <button id="backLobbyBtn" class="primary">ロビーへ</button>
           <button id="leaveResultBtn" class="ghost">退出</button>
         </div>
@@ -119,6 +128,16 @@
   </main>
 
   <div id="turnOverlay" class="turn-overlay hidden"></div>
+
+  <div id="reachOverlay" class="reach-overlay hidden"></div>
+
+  <dialog id="boardsDialog">
+    <div class="dialog-head">
+      <h2>最終盤面</h2>
+      <button data-close-dialog="boardsDialog" class="ghost small">閉じる</button>
+    </div>
+    <div id="boardsDialogBody" class="dialog-body boards-dialog-body"></div>
+  </dialog>
 
   <dialog id="rulesDialog">
     <div class="dialog-head">
